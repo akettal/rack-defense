@@ -53,9 +53,13 @@ end
 ## Throttling
 
 The Rack::Defense middleware evaluates the throttling criteria (lambdas) against the incoming request.
-If the return value is falsy, the request is not throttled. Otherwise, the returned value is used as a key to
-throttle the request. The returned key could be the request IP, user name, API token or any discriminator to throttle
-the requests against.
+If the first element of the return value is falsy, the request is not throttled. Otherwise, the
+first element of returned value is used as a key to throttle the request. The returned key could be
+the request IP, user name, API token or any discriminator to throttle the requests against.
+
+The response of the return value should be an Array containing 2 elements:
+- the key used for throttling;
+- the max number of request per period.
 
 ### Examples
 
@@ -63,8 +67,8 @@ Throttle POST requests for path `/login` with a maximum rate of 3 request per mi
 
 ```ruby
 Rack::Defense.setup do |config|
-  config.throttle('login', 3, 60 * 1000) do |req|
-    req.ip if req.path == '/login' && req.post?
+  config.throttle('login', 60 * 1000) do |req|
+    [req.ip, 3] if req.path == '/login' && req.post?
   end
 end
 ```
@@ -73,8 +77,8 @@ Throttle GET requests for path `/api/*` with a maximum rate of 50 request per se
 
 ```ruby
 Rack::Defense.setup do |config|
-  config.throttle('api', 50, 1000) do |req|
-    req.env['HTTP_AUTHORIZATION'] if %r{^/api/} =~ req.path
+  config.throttle('api', 1000) do |req|
+    [req.env['HTTP_AUTHORIZATION'], 50] if %r{^/api/} =~ req.path
   end 
 end
 ```
@@ -83,8 +87,8 @@ Throttle POST requests for path `/aggregate/report` with a maximum rate of 10 re
 
 ```ruby
 Rack::Defense.setup do |config|
-  config.throttle('aggregate_report', 10, 1.hour.in_milliseconds) do |req|
-    req.env['warden'].user.id if req.path == '/aggregate/report' && req.env['warden'].user
+  config.throttle('aggregate_report', 1.hour.in_milliseconds) do |req|
+    [req.env['warden'].user.id, 10] if req.path == '/aggregate/report' && req.env['warden'].user
   end 
 end
 ```
@@ -196,8 +200,8 @@ In this example, when an IP is exceeding the permitted request rate, we would li
 
 ```ruby
 Rack::Defense.setup do |config|
-  config.throttle('reset_password', 10, 10.minutes.in_milliseconds) do |req|
-    req.ip if req.path == '/api/users/password' && req.post?
+  config.throttle('reset_password', 10.minutes.in_milliseconds) do |req|
+    [req.ip, 10] if req.path == '/api/users/password' && req.post?
   end
 
   config.after_throttle do |req, rules|
