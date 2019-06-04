@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rack-defense (0.2.6)
+    rack-defense (0.3.0)
       rack (>= 1.6.11)
       redis (~> 4)
 
@@ -13,7 +13,7 @@ GEM
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
     rake (10.5.0)
-    redis (4.0.3)
+    redis (4.1.0)
     timecop (0.9.1)
 
 PLATFORMS
@@ -27,4 +27,4 @@ DEPENDENCIES
   timecop (~> 0.7)
 
 BUNDLED WITH
-   1.17.1
+   1.17.3

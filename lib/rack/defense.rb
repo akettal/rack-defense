@@ -112,9 +112,11 @@ class Rack::Defense
 
   def invoke_callbacks(callbacks, req, rule_data)
     callbacks.each do |callback|
-      callback.call(req, rule_data)
-    rescue
-      # mute exception
+      begin
+        callback.call(req, rule_data)
+      rescue
+        # mute exception
+      end
     end
   end
 end
