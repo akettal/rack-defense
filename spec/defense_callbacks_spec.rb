@@ -1,18 +1,18 @@
-require_relative 'spec_helper'
+require_relative "spec_helper"
 
-describe 'Rack::Defense::callbacks' do
+describe "Rack::Defense::callbacks" do
   before do
     @start_time = Time.utc(2015, 10, 30, 21, 0, 0)
     @throttled = []
     @banned = []
 
     Rack::Defense.setup do |config|
-      config.throttle('login', 3, 10 * 1000) do |req|
-        req.ip if req.path == '/login' && req.post?
+      config.throttle("login", 10 * 1000) do |req|
+        [req.ip, 3] if req.path == "/login" && req.post?
       end
 
-      config.ban('forbidden') do |req|
-         req.path == '/forbidden'
+      config.ban("forbidden") do |req|
+        req.path == "/forbidden"
       end
 
       # get notified when requests get throttled
@@ -26,26 +26,28 @@ describe 'Rack::Defense::callbacks' do
       end
     end
   end
-  it 'throttle rule gets called' do
+
+  it "throttle rule gets called" do
     5.times do |offset|
       time = @start_time + offset
       Timecop.freeze(time) do
-        post '/login', {}, 'REMOTE_ADDR' => '192.168.0.1'
+        post "/login", {}, { "REMOTE_ADDR" => "192.168.0.1" }
         if offset < 3
           assert_equal status_ok, last_response.status
           assert_equal 0, @throttled.length
         else
           assert_equal status_throttled, last_response.status
-          check_callback_data(@throttled, offset - 2, { 'login' => '192.168.0.1' }, '/login')
-       end
+          check_callback_data(@throttled, offset - 2, { "login" => "192.168.0.1" }, "/login")
+        end
       end
     end
   end
-  it 'ban callback gets called' do
+
+  it "ban callback gets called" do
     5.times do |i|
-      get '/forbidden'
+      get "/forbidden"
       assert_equal status_banned, last_response.status
-      check_callback_data(@banned, i + 1, 'forbidden', '/forbidden')
+      check_callback_data(@banned, i + 1, "forbidden", "/forbidden")
     end
   end
 

@@ -1,23 +1,29 @@
+# frozen_string_literal: true
+
 module Rack
   class Defense
     class ThrottleCounter
-      KEY_PREFIX = 'rack-defense'
+      KEY_PREFIX = "rack-defense"
 
       attr_accessor :name
 
-      def initialize(name, max_requests, time_period, store)
-        @name, @max_requests, @time_period = name.to_s, max_requests.to_i, time_period.to_i
-        raise ArgumentError, 'name should not be nil or empty' if @name.empty?
-        raise ArgumentError, 'max_requests should be greater than zero' unless @max_requests > 0
-        raise ArgumentError, 'time_period should be greater than zero' unless @time_period > 0
+      def initialize(name, time_period, store)
+        @name = name.to_s
+        @time_period = time_period.to_i
+        raise ArgumentError, "name should not be nil or empty" if @name.empty?
+
+        raise ArgumentError, "time_period should be greater than zero" unless @time_period.positive?
+
         @store = store
       end
 
-      def throttle?(key, timestamp=nil)
+      def throttle?(key, max_requests, timestamp = nil)
+        raise ArgumentError, "max_requests should be greater than zero (#{max_requests})" unless max_requests.positive?
+
         timestamp ||= (Time.now.utc.to_f * 1000).to_i
         @store.eval SCRIPT,
           ["#{KEY_PREFIX}:#{@name}:#{key}"],
-          [timestamp, @max_requests, @time_period]
+          [timestamp, max_requests, @time_period]
       end
 
       SCRIPT = <<-LUA_SCRIPT

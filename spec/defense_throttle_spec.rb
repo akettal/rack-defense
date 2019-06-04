@@ -14,18 +14,18 @@ describe 'Rack::Defense::throttle' do
     #
     Rack::Defense.setup do |config|
       # allow only 3 post requests on path '/login' per #window per ip
-      config.throttle('login', 3, window) do |req|
-        req.ip if req.path == '/login' && req.post?
+      config.throttle('login', window) do |req|
+        [req.ip, 3] if req.path == '/login' && req.post?
       end
 
       # allow only 30 get requests on path '/search' per #window per ip
-      config.throttle('res', 30, window) do |req|
-        req.ip if req.path == '/search' && req.get?
+      config.throttle('res', window) do |req|
+        [req.ip, 30] if req.path == '/search' && req.get?
       end
 
       # allow only 5 get requests on path /api/* per #window per authorization token
-      config.throttle('api', 5, window) do |req|
-        req.env['HTTP_AUTHORIZATION'] if %r{^/api/} =~ req.path
+      config.throttle('api', window) do |req|
+        [req.env['HTTP_AUTHORIZATION'], 5] if %r{^/api/} =~ req.path
       end
     end
   end
