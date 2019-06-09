@@ -21,18 +21,22 @@ module Rack
         raise ArgumentError, "max_requests should be greater than zero (#{max_requests})" unless max_requests.positive?
 
         timestamp ||= (Time.now.utc.to_f * 1000).to_i
-        @store.eval SCRIPT,
-          ["#{KEY_PREFIX}:#{@name}:#{key}"],
-          [timestamp, max_requests, @time_period]
+        args = [timestamp, max_requests, @time_period]
+        res = @store.eval SCRIPT, ["#{KEY_PREFIX}:#{@name}:#{key}"], args
+        !!res
       end
 
       SCRIPT = <<-LUA_SCRIPT
       local key = KEYS[1]
       local timestamp, max_requests, time_period = tonumber(ARGV[1]), tonumber(ARGV[2]), tonumber(ARGV[3])
-      local throttle = (redis.call('rpush', key, timestamp) > max_requests) and
-                       (timestamp - time_period) <= tonumber(redis.call('lpop', key))
-      redis.call('pexpire', key, time_period)
-      return throttle
+      redis.call('ZREMRANGEBYSCORE', key, 0, math.max(0, timestamp - time_period))
+      if tonumber(redis.call('ZCARD', key)) < max_requests
+      then
+        redis.call('ZADD', key, timestamp, timestamp)
+        return false
+      else
+        return true
+      end
       LUA_SCRIPT
 
       private_constant :SCRIPT

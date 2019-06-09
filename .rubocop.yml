@@ -1,0 +1,28 @@
+AllCops:
+  TargetRubyVersion: 2.5
+
+  # Exclude auto-generated files
+  Exclude:
+    - "bin/*"
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Metrics/LineLength:
+  Max: 120
+  IgnoredPatterns: ['\A#']
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/BracesAroundHashParameters:
+  EnforcedStyle: context_dependent
+
+Style/Lambda:
+  EnforcedStyle: literal
+
+Layout/IndentationConsistency:
+  EnforcedStyle: normal

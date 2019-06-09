@@ -9,8 +9,8 @@ Gem::Specification.new do |s|
   s.version = Rack::Defense::VERSION
   s.license = 'MIT'
 
-  s.authors = ['Chaker Nakhli']
-  s.email = ['chaker.nakhli@gmail.com']
+  s.authors = ['Abdelkader K.']
+  s.email = ['abdelkader.nah@gmail.com']
 
   s.files = Dir.glob('{bin,lib}/**/*') + %w(Rakefile README.md)
   s.test_files = Dir.glob('spec/**/*')

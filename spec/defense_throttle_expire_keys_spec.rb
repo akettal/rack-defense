@@ -14,7 +14,7 @@ describe "Rack::Defense::throttle_expire_keys" do
     end
   end
 
-  it "expire throttle key" do
+  it "do not expire throttle key" do
     ip = "192.168.169.244"
     throttle_key = "#{Rack::Defense::ThrottleCounter::KEY_PREFIX}:rule:#{ip}"
     redis = Rack::Defense.config.store
@@ -37,6 +37,6 @@ describe "Rack::Defense::throttle_expire_keys" do
     # Since Redis 2.6 the expire error is from 0 to 1 milliseconds. See http://redis.io/commands/expire
     sleep (window / 1000) + 0.002
 
-    refute redis.exists throttle_key
+    assert redis.exists throttle_key
   end
 end
